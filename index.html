@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>GuardianGrid · AI Mission Control</title>
+  <meta name="description" content="One City. Multiple AI Guardians." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+
+  <!-- ============================ LANDING / CINEMATIC INTRO ============================ -->
+  <section id="landing" class="landing">
+    <div class="sky"></div>
+    <div class="aurora"></div>
+    <canvas id="introCanvas" class="intro-canvas"></canvas>
+
+    <!-- cinematic city build -->
+    <svg id="introCity" class="intro-city" viewBox="0 0 1440 600" preserveAspectRatio="xMidYMax slice" aria-hidden="true"></svg>
+
+    <div class="landing-content">
+      <div class="ll-brand"><span class="ll-mark" id="llMark"></span><span>GuardianGrid</span></div>
+      <h1 class="ll-title">Guardian<span class="grad">Grid</span></h1>
+      <div class="ll-sub">CITIZEN GRIEVANCE · AI POWERED</div>
+      <p class="ll-tag">Report a problem in your city. &nbsp;Let AI route it to the right department.</p>
+      <div class="ll-actions">
+        <button class="launch-btn" id="reportEntry">
+          <span class="lb-ripple"></span>
+          <span class="lb-ico" id="reportIco"></span>
+          <span class="lb-text">Report an Issue</span>
+        </button>
+        <button class="launch-btn ghost" id="launchMission">
+          <span class="lb-ico" id="opsIco"></span>
+          <span class="lb-text">AI Operations</span>
+        </button>
+      </div>
+      <div class="ll-hint">Government of India · Smart City Grievance Redressal</div>
+    </div>
+  </section>
+
+  <!-- ============================ AUTH / LOGIN ============================ -->
+  <section id="auth" class="auth hidden">
+    <div class="auth-art">
+      <div class="auth-art-glow"></div>
+      <button class="auth-back" id="authBack"></button>
+      <div class="auth-brand"><span class="ll-mark" id="authMark"></span><span>GuardianGrid</span></div>
+      <h2 class="auth-art-h">Your voice.<br/>Your city.<br/><span class="grad">Resolved by AI.</span></h2>
+      <ul class="auth-points" id="authPoints"></ul>
+      <div class="auth-gov" id="authGov"></div>
+    </div>
+    <div class="auth-form">
+      <div class="auth-card" id="authCard">
+        <div class="auth-step" id="authStepPhone">
+          <h3>Sign in to continue</h3>
+          <p class="auth-sub">We'll send a one-time code to verify it's you.</p>
+          <label class="fld-label">Mobile number</label>
+          <div class="phone-fld">
+            <span class="cc">🇮🇳 +91</span>
+            <input id="phoneInput" type="tel" maxlength="10" inputmode="numeric" placeholder="98765 43210" />
+          </div>
+          <button class="btn-primary block" id="sendOtp" disabled>Send OTP <span id="sendOtpIco"></span></button>
+          <button class="btn-text" id="guestBtn">Continue as guest</button>
+          <div class="auth-fine">By continuing you agree to the Citizen Charter & privacy policy.</div>
+        </div>
+        <div class="auth-step hidden" id="authStepOtp">
+          <button class="otp-back" id="otpBack">← Change number</button>
+          <h3>Enter the code</h3>
+          <p class="auth-sub">Sent to <b id="otpDest">+91 •••••</b> · <span class="otp-demo">demo: any 4 digits</span></p>
+          <div class="otp-boxes" id="otpBoxes"></div>
+          <button class="btn-primary block" id="verifyOtp" disabled>Verify & Continue <span id="verifyIco"></span></button>
+          <div class="otp-resend">Didn't get it? <button class="btn-text inline" id="resendOtp">Resend in <b id="resendT">20s</b></button></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================ CITIZEN PORTAL ============================ -->
+  <div id="portal" class="portal hidden">
+    <header class="p-top">
+      <div class="p-top-l">
+        <button class="p-icon p-menu" id="pMenu"></button>
+        <div class="brand-mini"><span class="ll-mark sm" id="pMark"></span><b>Guardian<span class="grad">Grid</span></b></div>
+      </div>
+      <button class="p-loc" id="pLoc"></button>
+      <div class="p-top-r">
+        <button class="p-icon" id="pNotif"><span class="p-badge" id="pBadge">2</span></button>
+        <button class="p-profile" id="pProfile"><span class="p-ava" id="pAva">U</span><span class="p-name" id="pName">Citizen</span></button>
+      </div>
+    </header>
+    <aside class="p-side" id="pSide">
+      <nav id="pNav"></nav>
+      <button class="p-side-ops" id="toOps"></button>
+    </aside>
+    <main class="p-main" id="pMain"></main>
+    <div class="p-scrim" id="pScrim"></div>
+  </div>
+
+  <!-- ============================ MISSION CONTROL ============================ -->
+  <main id="mc" class="mc hidden">
+
+    <!-- top mission bar -->
+    <header class="mc-top">
+      <div class="mt-l">
+        <span class="mt-mark" id="mtMark"></span>
+        <div class="mt-id"><b>GuardianGrid</b><span>Mission Control · Sector Metro</span></div>
+      </div>
+      <div class="mt-c">
+        <div class="mt-stat"><span class="mt-k">MISSION CLOCK</span><span class="mt-v mono" id="missionClock">00:00:00</span></div>
+        <div class="mt-sep"></div>
+        <div class="mt-stat"><span class="mt-k">CITY STATUS</span><span class="mt-v" id="cityStatus"><i class="dot dot-green"></i> Secure</span></div>
+        <div class="mt-sep"></div>
+        <div class="mt-stat"><span class="mt-k">WEATHER</span><span class="mt-v" id="mtWeather"></span></div>
+        <div class="mt-sep"></div>
+        <div class="mt-stat"><span class="mt-k">THREAT</span><span class="mt-v" id="mtThreat"><i class="dot dot-green"></i> Low</span></div>
+      </div>
+      <div class="mt-r">
+        <button class="ghost-btn" id="impactBtn">Real-World Impact</button>
+        <button class="ghost-btn" id="guardiansBtn">Guardians</button>
+        <button class="ghost-btn danger" id="exitBtn">Exit</button>
+      </div>
+    </header>
+
+    <!-- main grid -->
+    <div class="mc-grid">
+
+      <!-- LEFT : digital twin city -->
+      <section class="panel city-panel" id="cityPanel">
+        <div class="panel-tag"><span class="pt-ico" id="cityTagIco"></span> Digital Twin · Live</div>
+        <div class="city-stage" id="cityStage"></div>
+        <!-- floating shared memory hologram -->
+        <div class="holo" id="holo">
+          <div class="holo-head"><span class="holo-ico" id="holoIco"></span> Shared Memory</div>
+          <div class="holo-grid" id="holoGrid"></div>
+        </div>
+        <div class="city-cam" id="cityCam"></div>
+      </section>
+
+      <!-- CENTER : AI orchestration engine -->
+      <section class="panel core-panel">
+        <div class="panel-tag"><span class="pt-ico" id="coreTagIco"></span> Orchestration Engine</div>
+        <div class="core-stage" id="coreStage">
+          <div class="orbit-ring r1"></div>
+          <div class="orbit-ring r2"></div>
+          <div class="orbit-ring r3"></div>
+          <svg class="energy-lines" id="energyLines" viewBox="0 0 360 360"></svg>
+          <div class="ai-core" id="aiCore">
+            <div class="core-glow"></div>
+            <div class="core-ring"></div>
+            <div class="core-inner">
+              <span class="core-ico" id="coreIco"></span>
+              <span class="core-state mono" id="coreState">IDLE</span>
+            </div>
+          </div>
+          <div class="guardians-orbit" id="guardiansOrbit"></div>
+        </div>
+        <div class="pipeline" id="pipeline"></div>
+        <button class="run-btn" id="runMission">
+          <span class="rb-ico" id="rbIco"></span>
+          <span id="runLabel">Run Mission</span>
+        </button>
+      </section>
+
+      <!-- RIGHT : AI brain -->
+      <section class="panel brain-panel">
+        <div class="panel-tag"><span class="pt-ico" id="brainTagIco"></span> AI Brain · Reasoning</div>
+        <div class="brain-scroll" id="brainScroll"></div>
+        <div class="brain-foot">
+          <div class="bf-row"><span>Model</span><b class="mono">guardian-x · opus</b></div>
+          <div class="bf-row"><span>Tokens/s</span><b class="mono" id="tps">0</b></div>
+        </div>
+      </section>
+    </div>
+
+    <!-- bottom : live terminal -->
+    <section class="terminal" id="terminal">
+      <div class="term-head">
+        <span class="term-dots"><i></i><i></i><i></i></span>
+        <span class="term-title mono">guardiangrid@mission-control ~ live-ops</span>
+        <span class="term-status mono" id="termStatus"><i class="dot dot-green"></i> streaming</span>
+      </div>
+      <div class="term-body mono" id="termBody"></div>
+    </section>
+  </main>
+
+  <!-- ============================ GUARDIANS SLIDE-OVER ============================ -->
+  <div class="sheet" id="guardianSheet">
+    <div class="sheet-head"><b>AI Guardians</b><button class="ghost-btn" id="closeSheet">Close</button></div>
+    <div class="sheet-grid" id="sheetGrid"></div>
+  </div>
+
+  <!-- ============================ REAL-WORLD IMPACT OVERLAY ============================ -->
+  <div class="impact-overlay" id="impactOverlay">
+    <button class="impact-close" id="impactClose"></button>
+    <div class="impact-stage">
+      <h2 class="impact-h">From Reactive City to <span class="grad">Autonomous City</span></h2>
+      <div class="impact-split">
+        <div class="iside trad" id="impactTrad">
+          <div class="iside-tag">Traditional City</div>
+          <div class="iside-city" id="tradCity"></div>
+          <ul class="iside-list" id="tradList"></ul>
+        </div>
+        <button class="impact-morph" id="impactMorph"><span id="morphIco"></span> Transform</button>
+        <div class="iside grid" id="impactGrid">
+          <div class="iside-tag glow">GuardianGrid</div>
+          <div class="iside-city" id="ggCity"></div>
+          <ul class="iside-list" id="ggList"></ul>
+        </div>
+      </div>
+      <div class="impact-metrics" id="impactMetrics"></div>
+    </div>
+  </div>
+
+  <!-- ============================ MISSION COMPLETE OVERLAY ============================ -->
+  <div class="complete-overlay" id="completeOverlay">
+    <div class="complete-card">
+      <div class="complete-check" id="completeCheck"></div>
+      <h2>Mission Completed</h2>
+      <div class="complete-lines" id="completeLines"></div>
+      <button class="run-btn" id="completeDone"><span id="doneIco"></span> Return to Control</button>
+    </div>
+  </div>
+
+  <div class="toast-wrap" id="toastWrap"></div>
+  <div class="vignette"></div>
+  <script src="app.js"></script>
+</body>
+</html>

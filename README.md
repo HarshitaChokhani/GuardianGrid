@@ -135,16 +135,12 @@ GuardianGrid addresses these challenges by providing a unified AI-powered platfo
 
 ```text
 GuardianGrid/
-│
-├── index.html
-├── styles.css
-├── app.js
-├── assets/
-│   ├── images/
-│   ├── icons/
-│   └── animations/
+├── .claude/
+├── GuardianGrid_Proposal.pdf
 ├── README.md
-└── LICENSE
+├── app.js
+├── index.html
+└── styles.css
 ```
 
 ---

@@ -573,16 +573,30 @@ let curLoc={state:'Punjab',city:'Ludhiana',ward:'Ward 12 · Model Town'};
 let complaints=[];
 let seq=4821;
 function seedComplaints(){
+  const C=i=>CATS[i];const B='Ludhiana Municipal Corporation';
+  const mk=(id,ci,t,ward,pri,st,cr,cit,smp,m)=>({id,cat:C(ci),title:t,desc:t,photo:null,sample:smp!=null?SAMPLES[smp]:null,state:'Punjab',city:'Ludhiana',ward,body:B,priority:pri,status:st,created:cr,citizen:cit,mine:!!m});
   complaints=[
-    {id:'PB-LDH-2026-004820',cat:CATS[1],title:'Garbage overflow near Model Town market',desc:'Garbage bin overflowing for days.',photo:null,sample:SAMPLES[1],state:'Punjab',city:'Ludhiana',ward:'Ward 12 · Model Town',body:'Ludhiana Municipal Corporation',priority:'Medium',status:3,created:'2 days ago'},
-    {id:'PB-LDH-2026-004817',cat:CATS[3],title:'Streetlight not working · Sarabha Nagar',desc:'Lane is dark and unsafe at night.',photo:null,sample:SAMPLES[3],state:'Punjab',city:'Ludhiana',ward:'Ward 23 · Sarabha Nagar',body:'Ludhiana Municipal Corporation',priority:'Low',status:2,created:'5 days ago'},
+    // the logged-in citizen's own reports
+    mk('PB-LDH-2026-004820',1,'Garbage overflow near Model Town market','Ward 12','Medium',3,'2 days ago','You',1,true),
+    mk('PB-LDH-2026-004817',3,'Streetlight not working in Sarabha Nagar','Ward 9','Low',2,'5 days ago','You',3,true),
+    // other citizens' reports — these populate the officer inbox
+    mk('PB-LDH-2026-004821',2,'Burst pipeline flooding road near City Hospital','Ward 7','High',2,'18 min ago','Harpreet Kaur',2),
+    mk('PB-LDH-2026-004822',0,'Deep pothole on Ferozepur Road','Ward 4','High',1,'1 hour ago','Amit Verma',0),
+    mk('PB-LDH-2026-004823',0,'Broken road dug up near bus stand','Ward 11','Medium',0,'35 min ago','Rohit Mehta',0),
+    mk('PB-LDH-2026-004816',1,'Garbage not collected for a week','Ward 5','High',3,'1 day ago','Simran Gill',1),
+    mk('PB-LDH-2026-004812',2,'Low water pressure in Phase 2','Ward 2','Medium',4,'3 days ago','Arjun Rao',2),
+    mk('PB-LDH-2026-004808',3,'Dark stretch near the school gate','Ward 8','Low',4,'6 days ago','Neha Joshi',3),
+    mk('PB-LDH-2026-004824',4,'Stray cattle blocking the main road','Ward 6','Medium',1,'4 hours ago','Kabir Singh',null),
+    mk('PB-LDH-2026-004825',5,'Illegal encroachment on footpath','Ward 3','Low',0,'2 hours ago','Priya Nair',null),
   ];
+  seq=4825;
 }
 const STATUSES=['Registered','Acknowledged','Assigned','In Progress','Resolved'];
 const STBADGE=[['Registered','st-registered'],['Acknowledged','st-registered'],['Assigned','st-assigned'],['In Progress','st-progress'],['Resolved','st-resolved']];
 
 /* ---- screen control ---- */
-function show(id){['landing','auth','portal','mc'].forEach(s=>$('#'+s).classList.toggle('hidden',s!==id));}
+function show(id){['landing','auth','portal','gov','mc'].forEach(s=>$('#'+s).classList.toggle('hidden',s!==id));}
+function mine(){return complaints.filter(c=>c.mine);}
 
 /* ---- AUTH ---- */
 function buildAuth(){
@@ -627,7 +641,7 @@ function buildPortal(){
   $('#pName').textContent=user.name;$('#pAva').textContent=(user.name[0]||'U');
   updateLocChip();
   const nav=$('#pNav');nav.innerHTML='';
-  PNAV.forEach(n=>{const b=el('button','p-link',`${n[2]} ${n[1]}${n[0]==='complaints'?`<span class="pl-count" id="navCount">${complaints.length}</span>`:''}`);
+  PNAV.forEach(n=>{const b=el('button','p-link',`${n[2]} ${n[1]}${n[0]==='complaints'?`<span class="pl-count" id="navCount">${mine().length}</span>`:''}`);
     b.dataset.v=n[0];b.onclick=()=>{pgo(n[0]);$('#pSide').classList.remove('open');$('#pScrim').classList.remove('show');};nav.appendChild(b);});
   $('#toOps').innerHTML=`<span class="so-ico">${IC.cpu}</span><span><b>AI Operations</b><span>See the agents at work</span></span>`;
   $('#toOps').onclick=()=>enterMissionFromPortal(false);
@@ -642,12 +656,13 @@ function setNav(v){[...$('#pNav').children].forEach(b=>b.classList.toggle('activ
 function pgo(view,arg){
   if(['home','report','complaints'].includes(view))setNav(view);
   const m=$('#pMain');m.innerHTML='';const v=el('div','p-view');m.appendChild(v);m.scrollTo(0,0);
-  ({home:pHome,report:pReport,complaints:pComplaints,detail:pDetail}[view]||pHome)(v,arg);
+  ({home:pHome,report:pReport,complaints:pComplaints,detail:pDetail,aiprocess:pAiProcess}[view]||pHome)(v,arg);
 }
 
 /* ---------- home ---------- */
 function pHome(v){
-  const open=complaints.filter(c=>c.status<4).length, resolved=complaints.filter(c=>c.status>=4).length;
+  const my=mine();
+  const open=my.filter(c=>c.status<4).length, resolved=my.filter(c=>c.status>=4).length;
   v.innerHTML=`
     <div class="p-hello">Welcome back</div>
     <h1 class="p-h1">Namaste, ${user.name.split(' ')[0]} <span class="wave">👋</span></h1>
@@ -661,7 +676,7 @@ function pHome(v){
       <div class="hh-illu">${heroIllu()}</div>
     </div>
     <div class="stat-row">
-      <div class="stat-c"><div class="sc-ico" style="background:#EFF6FF;color:#2563EB">${IC.file}</div><div class="sc-v">${complaints.length}</div><div class="sc-l">Total reports</div></div>
+      <div class="stat-c"><div class="sc-ico" style="background:#EFF6FF;color:#2563EB">${IC.file}</div><div class="sc-v">${my.length}</div><div class="sc-l">Total reports</div></div>
       <div class="stat-c"><div class="sc-ico" style="background:#FFFBEB;color:#B45309">${IC.clock}</div><div class="sc-v">${open}</div><div class="sc-l">In progress</div></div>
       <div class="stat-c"><div class="sc-ico" style="background:#ECFDF5;color:#047857">${IC.check}</div><div class="sc-v">${resolved}</div><div class="sc-l">Resolved</div></div>
       <div class="stat-c"><div class="sc-ico" style="background:#F5F3FF;color:#6D28D9">${IC.sparkles}</div><div class="sc-v">11 min</div><div class="sc-l">Avg resolution</div></div>
@@ -673,7 +688,7 @@ function pHome(v){
       ${[['Capture',IC.camera,'#2563EB','Take or upload a photo of the issue.'],['AI routes it',IC.sparkles,'#06B6D4','AI detects the category & the right department.'],['Track',IC.flag,'#10B981','Get a complaint ID and follow it to resolution.']].map((s,i)=>`<div class="step3"><div class="s3-n">0${i+1}</div><div class="s3-ico" style="background:${s[2]}1a;color:${s[2]}">${s[1]}</div><h4>${s[0]}</h4><p>${s[3]}</p></div>`).join('')}
     </div>`;
   const list=v.querySelector('#homeList');
-  if(complaints.length) complaints.slice(0,3).forEach(c=>list.appendChild(cxCard(c)));
+  if(my.length) my.slice(0,3).forEach(c=>list.appendChild(cxCard(c)));
   else list.innerHTML=`<div class="empty-state" style="padding:30px"><div class="es-ico">${IC.megaphone}</div><h3>No reports yet</h3><p>Your submitted issues will appear here.</p></div>`;
   v.querySelector('#heroReport').onclick=()=>pgo('report');
   v.querySelector('#seeAll').onclick=()=>pgo('complaints');
@@ -845,9 +860,9 @@ function submitComplaint(v){
   const code=STATES[wiz.state].code+'-'+cityCode(wiz.city);
   const id=`${code}-2026-${String(seq).padStart(6,'0')}`;
   const title=(wiz.desc||wiz.cat.name).split('.')[0].slice(0,52)+(wiz.desc.length>52?'…':'');
-  const comp={id,cat:wiz.cat,title,desc:wiz.desc,photo:wiz.photo,sample:wiz.sample,state:wiz.state,city:wiz.city,ward:wiz.ward,body:wiz.body,priority:wiz.priority,status:2,created:'Just now'};
+  const comp={id,cat:wiz.cat,title,desc:wiz.desc,photo:wiz.photo,sample:wiz.sample,state:wiz.state,city:wiz.city,ward:wiz.ward,body:wiz.body,priority:wiz.priority,status:2,created:'Just now',citizen:'You',mine:true};
   complaints.unshift(comp);
-  const cnt=$('#navCount');if(cnt)cnt.textContent=complaints.length;
+  const cnt=$('#navCount');if(cnt)cnt.textContent=mine().length;
   curLoc={state:wiz.state,city:wiz.city,ward:wiz.ward};updateLocChip();
   renderSuccess(v,comp);
 }
@@ -871,7 +886,7 @@ function renderSuccess(v,c){
   v.querySelector('#copyId').onclick=()=>{navigator.clipboard&&navigator.clipboard.writeText(c.id);toast('Copied','Complaint number copied',IC.copy,'rgba(37,99,235,.14)','#2563EB');};
   v.querySelector('#another').onclick=()=>pgo('report');
   v.querySelector('#track').onclick=()=>pgo('detail',c);
-  v.querySelector('#watchAi').onclick=()=>enterMissionFromPortal(true);
+  v.querySelector('#watchAi').onclick=()=>pgo('aiprocess',c);
   toast('Complaint registered',c.id,IC.check);
 }
 
@@ -880,7 +895,8 @@ function pComplaints(v){
   v.innerHTML=`<div class="p-hello">Track</div><h1 class="p-h1">My Complaints</h1><p class="p-sub">All the issues you've reported and their live status.</p>
     <div style="margin-top:22px" class="cx-list" id="allList"></div>`;
   const list=v.querySelector('#allList');
-  if(complaints.length)complaints.forEach(c=>list.appendChild(cxCard(c)));
+  const my=mine();
+  if(my.length)my.forEach(c=>list.appendChild(cxCard(c)));
   else list.innerHTML=`<div class="empty-state"><div class="es-ico">${IC.megaphone}</div><h3>No complaints yet</h3><p>Report your first civic issue to see it here.</p><button class="btn-primary" id="firstReport">${IC.plus} Report an Issue</button></div>`;
   const fr=v.querySelector('#firstReport');if(fr)fr.onclick=()=>pgo('report');
 }
@@ -910,11 +926,231 @@ function pDetail(v,c){
           <div class="info-row"><span class="ir-k">Priority</span><span class="ir-v">${c.priority}</span></div>
         </div>
         <div class="info-card" style="margin-top:16px"><h4>Description</h4><p style="font-size:14px;color:var(--slate);line-height:1.6">${c.desc||c.cat.name}</p></div>
-        <button class="btn-primary block" id="watchAi" style="margin-top:16px">${IC.cpu} Watch AI Operations</button>
+        <button class="btn-primary block" id="watchAi" style="margin-top:16px">${IC.sparkles} See how AI resolved this</button>
       </div>
     </div>`;
   v.querySelector('#dBack').onclick=()=>pgo('complaints');
-  v.querySelector('#watchAi').onclick=()=>enterMissionFromPortal(true);
+  v.querySelector('#watchAi').onclick=()=>pgo('aiprocess',c);
+}
+
+/* ====================================================================
+   AI RESOLUTION ENGINE  (per-complaint · human + explainable)
+==================================================================== */
+Object.assign(IC,{
+  eye:P('<path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/>'),
+  layers:P('<path d="M12 2l9 5-9 5-9-5z"/><path d="M3 12l9 5 9-5M3 17l9 5 9-5"/>'),
+  message:P('<path d="M21 11.5a8.4 8.4 0 0 1-9 8.4 9 9 0 0 1-4-1L3 20l1.1-4A8.4 8.4 0 0 1 12 3a8.4 8.4 0 0 1 9 8.5z"/>'),
+  inbox:P('<path d="M22 12h-6l-2 3h-4l-2-3H2"/><path d="M5 5h14l3 7v6a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2v-6z"/>'),
+});
+const PAGENTS=[
+  {id:'vision',name:'Vision Agent',role:'Image understanding',ico:IC.eye,c:'#2563EB'},
+  {id:'triage',name:'Triage Agent',role:'Priority & severity',ico:IC.gauge,c:'#F59E0B'},
+  {id:'pattern',name:'Pattern Agent',role:'Duplicate & trend detection',ico:IC.layers,c:'#8B5CF6'},
+  {id:'routing',name:'Routing Agent',role:'Department & jurisdiction',ico:IC.route,c:'#06B6D4'},
+  {id:'coord',name:'Coordination Agent',role:'Officer & crew dispatch',ico:IC.users,c:'#10B981'},
+  {id:'comms',name:'Citizen Comms Agent',role:'Updates & transparency',ico:IC.message,c:'#EF4444'},
+];
+function computeAI(c){
+  const visual={pothole:'a large pothole with broken asphalt on the carriageway',garbage:'an overflowing waste point with scattered garbage',water:'water pooling from what looks like a burst pipeline',streetlight:'a dead street-light pole over a dark stretch',stray:'stray animals gathered along a residential lane',encroach:'an unauthorised structure encroaching on public space'}[c.cat.id]||'the reported civic issue';
+  const pr=c.priority;
+  const prWhy={High:'it’s close to a hospital / busy area and poses a public-safety risk',Medium:'it has been affecting residents and is likely to get worse',Low:'it’s a localised issue with low immediate risk'}[pr]||'it needs municipal attention';
+  const dup=1+Math.floor(Math.random()*3);
+  const officers=[['Ravi Kumar','Junior Engineer','RK'],['Anjali Sharma','Assistant Engineer','AS'],['Suresh Patel','Junior Engineer','SP'],['Meena Iyer','Section Officer','MI'],['Vikram Singh','Field Engineer','VS']];
+  const off=officers[Math.floor(Math.random()*officers.length)];
+  const crew='#'+(10+Math.floor(Math.random()*80));
+  const eta=pr==='High'?'8 hours':pr==='Medium'?'2 days':'5 days';
+  const dept=c.cat.dept.split('·')[0].trim();
+  const cf=()=>90+Math.floor(Math.random()*8);
+  return {pr,prWhy,dup,off,crew,eta,dept,steps:[
+    {reasoning:`Scanning the photo… I can see ${visual}. This matches your description of a ${c.cat.name.toLowerCase()} issue.`,decision:`${c.cat.name}`,why:'Matched visual features in the image with the words in your description.',conf:cf()},
+    {reasoning:`Assessing how urgent this is. Based on the location and the wording, ${prWhy}.`,decision:`Priority · ${pr}`,why:'Severity model weighed proximity to sensitive places, safety risk and language cues.',conf:cf()},
+    {reasoning:`Checking the neighbourhood… I found ${dup} similar open report${dup>1?'s':''} in ${c.ward}. Linking ${dup>1?'them':'it'} so the department sees ${dup>1?'a recurring hotspot':'a verified issue'}.`,decision:`${dup} report${dup>1?'s':''} linked`,why:'De-duplication prevents repeat work and auto-flags recurring civic hotspots.',conf:cf()},
+    {reasoning:`A ${c.cat.name.toLowerCase()} in ${c.city} falls under the ${c.cat.dept}. Filing it with ${c.body}.`,decision:`Routed · ${dept}`,why:'Mapped issue category → responsible department → correct local municipal body.',conf:cf()},
+    {reasoning:`Assigning to Er. ${off[0]}, ${off[1]}. Nearest field crew ${crew} is being dispatched. Target resolution within ${eta}.`,decision:`Crew ${crew} · ETA ${eta}`,why:'Picked the nearest available team that can meet the SLA for this priority.',conf:cf()},
+    {reasoning:`Notifying you now — an SMS and a live tracking link are on the way. I'll keep you updated at every step, automatically.`,decision:'Citizen notified',why:'Full transparency — you follow every status change in real time.',conf:cf()},
+  ]};
+}
+
+let aiToken=0;
+function pAiProcess(v,c){
+  if(!c){pgo('complaints');return;}
+  const token=++aiToken;
+  if(!c._ai)c._ai=computeAI(c);const ai=c._ai;
+  const thumb=c.photo?`<img src="${c.photo}">`:c.sample?sampleThumb(c.sample):`<span class="cxt-ico">${c.cat.ico}</span>`;
+  v.innerHTML=`
+    <button class="wiz-back" id="aiBack" style="margin-bottom:14px">${IC.chevron} Back to tracking</button>
+    <div class="aip-chip">
+      <div class="cx-thumb" style="width:60px;height:60px">${thumb}</div>
+      <div style="flex:1;min-width:0"><div class="cx-id">${c.id}</div><div class="aip-title">${c.title}</div>
+        <div class="cx-meta">${IC.pin} ${c.ward}, ${c.city} · <b style="color:${c.cat.c}">${c.cat.name}</b></div></div>
+      <span class="st-badge ${STBADGE[c.priority==='High'?3:2][1]}">${c.priority} priority</span>
+    </div>
+    <div class="aip-head">
+      <div><div class="p-hello" style="color:#06B6D4">Autonomous Resolution</div><h1 class="p-h1" style="font-size:24px">AI Resolution Engine</h1></div>
+      <div class="aip-counter"><div class="aic-num"><b id="decCount">0</b> autonomous decisions</div><div class="aic-sub"><b style="color:#10B981">0</b> human actions required</div></div>
+    </div>
+    <div class="aip-grid">
+      <div class="agent-flow" id="agentFlow">${PAGENTS.map((a,i)=>`
+        <div class="agentp" data-id="${a.id}" style="--ac:${a.c}">
+          <div class="ap-rail"><span class="ap-node">${a.ico}<span class="ap-chk">${IC.check}</span></span>${i<PAGENTS.length-1?'<span class="ap-line"></span>':''}</div>
+          <div class="ap-card">
+            <div class="ap-top"><b>${a.name}</b><span class="ap-role">${a.role}</span><span class="ap-state" data-st>queued</span></div>
+            <div class="ap-think"></div>
+            <div class="ap-decision"></div>
+          </div>
+        </div>`).join('')}</div>
+      <div class="aip-side">
+        <div class="declog-card"><div class="declog-h">${IC.sparkles} Autonomous Decisions</div><div class="declog" id="decLog"><div class="declog-empty" id="decEmpty">Decisions will appear here as the agents reason…</div></div></div>
+        <div class="resplan" id="resPlan"></div>
+      </div>
+    </div>
+    <div class="aip-actions">
+      <button class="btn-line" id="aiReplay">${IC.refresh} Replay</button>
+      <button class="btn-line" id="aiSkip">Skip to result ${IC.arrow}</button>
+      <button class="btn-primary" id="aiOps">${IC.cpu} Open City Mission Control</button>
+    </div>`;
+  v.querySelector('#aiBack').onclick=()=>pgo('detail',c);
+  v.querySelector('#aiReplay').onclick=()=>{c._ai=computeAI(c);pgo('aiprocess',c);};
+  v.querySelector('#aiSkip').onclick=()=>aiSkip(v,c,ai);
+  v.querySelector('#aiOps').onclick=()=>enterMissionFromPortal(false);
+  runAi(v,c,ai,token);
+}
+function setSt(card,txt,cls){const s=card.querySelector('[data-st]');s.textContent=txt;s.className='ap-state '+(cls||'');}
+function typeInto(el,text,speed,token){return new Promise(res=>{let i=0;const step=()=>{if(token!==aiToken){res();return;}i=Math.min(text.length,i+2);el.textContent=text.slice(0,i);if(i<text.length)after(step,speed);else res();};step();});}
+function revealDecision(card,d,a){
+  card.querySelector('.ap-decision').innerHTML=`<div class="apd-badge" style="background:${a.c}1a;color:${a.c}">${IC.check} ${d.decision}<span class="apd-conf">${d.conf}%</span></div><div class="apd-why">${IC.sparkles} ${d.why}</div>`;
+}
+function addDecision(log,d,a,n){
+  const e=$('#decEmpty');if(e)e.remove();
+  const item=el('div','declog-item',`<span class="dl-n" style="background:${a.c}">${n}</span><div><div class="dl-d">${d.decision}</div><div class="dl-w">${d.why}</div></div>`);
+  log.appendChild(item);log.scrollTop=log.scrollHeight;
+  const cc=$('#decCount');if(cc)cc.textContent=n;
+}
+async function runAi(root,c,ai,token){
+  const log=root.querySelector('#decLog');
+  for(let i=0;i<PAGENTS.length;i++){
+    if(token!==aiToken||!document.body.contains(root))return;
+    const a=PAGENTS[i],card=root.querySelector(`.agentp[data-id="${a.id}"]`);
+    card.classList.add('active');setSt(card,'thinking…','thinking');
+    await wait(480);if(token!==aiToken)return;
+    await typeInto(card.querySelector('.ap-think'),ai.steps[i].reasoning,15,token);
+    if(token!==aiToken)return;
+    revealDecision(card,ai.steps[i],a);addDecision(log,ai.steps[i],a,i+1);
+    setSt(card,'done','done');card.classList.add('done');
+    await wait(560);
+  }
+  if(token!==aiToken)return;showResolution(root,c,ai);
+}
+function aiSkip(root,c,ai){
+  aiToken++; // stop running sequence
+  const log=root.querySelector('#decLog');log.innerHTML='';const e=$('#decEmpty');
+  PAGENTS.forEach((a,i)=>{const card=root.querySelector(`.agentp[data-id="${a.id}"]`);
+    card.classList.add('active','done');setSt(card,'done','done');
+    card.querySelector('.ap-think').textContent=ai.steps[i].reasoning;revealDecision(card,ai.steps[i],a);
+    addDecision(log,ai.steps[i],a,i+1);});
+  showResolution(root,c,ai);
+}
+function showResolution(root,c,ai){
+  if(c.status<2){c.status=2;}
+  const last6=c.id.slice(-6);
+  const rp=root.querySelector('#resPlan');
+  rp.innerHTML=`
+    <div class="rp-h">${IC.check} Resolution plan ready</div>
+    <div class="officer"><span class="off-ava">${ai.off[2]}</span><div><div class="off-n">Er. ${ai.off[0]}</div><div class="off-r">${ai.off[1]} · ${ai.dept}</div></div><span class="off-eta">ETA ${ai.eta}</span></div>
+    <div class="sms"><div class="sms-h">${IC.message} SMS sent to citizen</div><div class="sms-b">GuardianGrid: Complaint <b>${c.id}</b> registered & assigned to ${c.body}. Priority ${ai.pr}. Track live: gg.in/t/${last6}</div></div>
+    <div class="autonomy"><div class="au-big"><b>6</b> autonomous decisions</div><div class="au-small">resolved end-to-end · <b style="color:#10B981">0 human dispatchers</b></div></div>`;
+  rp.classList.add('show');
+  const cc=$('#decCount');if(cc)cc.textContent='6';
+  toast('AI resolution complete','Routed & dispatched autonomously',IC.sparkles,'rgba(6,182,212,.14)','#0891B2');
+}
+
+/* ====================================================================
+   GOVERNMENT / OFFICER CONSOLE  (closes the loop)
+==================================================================== */
+const GOV_TABS=['Open','Resolved','All'];
+let govState={dept:'all',tab:'Open',sel:null};
+function buildGov(){
+  $('#govMark').innerHTML=IC.shield;
+  $('#govExit').onclick=()=>show('landing');
+  govState={dept:'all',tab:'Open',sel:null};
+  govRender();
+}
+const priRank=p=>p==='High'?3:p==='Medium'?2:1;
+function govScope(){return govState.dept==='all'?complaints:complaints.filter(c=>c.cat.id===govState.dept);}
+function govRender(){renderGovSide();renderGovMain();}
+function renderGovSide(){
+  const side=$('#govSide');
+  const items=[['all','All Departments',IC.list,'#2563EB',complaints.length]]
+    .concat(CATS.map(cat=>[cat.id,cat.dept.split('·')[0].trim(),cat.ico,cat.c,complaints.filter(c=>c.cat.id===cat.id).length]));
+  side.innerHTML=`<div class="gov-side-h">Departments</div>`+items.map(it=>`
+    <button class="gov-dept ${govState.dept===it[0]?'active':''}" data-d="${it[0]}">
+      <span class="gd-ico" style="background:${it[3]}1a;color:${it[3]}">${it[2]}</span>
+      <span class="gd-n">${it[1]}</span><span class="gd-c">${it[4]}</span></button>`).join('');
+  side.querySelectorAll('.gov-dept').forEach(b=>b.onclick=()=>{govState.dept=b.dataset.d;govState.sel=null;govRender();});
+}
+function govKpi(label,val,ico,c){return `<div class="gov-kpi"><div class="gk-ico" style="background:${c}1a;color:${c}">${ico}</div><div><div class="gk-v">${val}</div><div class="gk-l">${label}</div></div></div>`;}
+function renderGovMain(){
+  const scope=govScope();
+  const open=scope.filter(c=>c.status<4).length,prog=scope.filter(c=>c.status===3).length,res=scope.filter(c=>c.status===4).length,high=scope.filter(c=>c.priority==='High'&&c.status<4).length;
+  const list=scope.filter(c=>govState.tab==='Open'?c.status<4:govState.tab==='Resolved'?c.status===4:true)
+    .sort((a,b)=>(priRank(b.priority)-priRank(a.priority))||(a.status-b.status));
+  const title=govState.dept==='all'?'All Departments':CATS.find(c=>c.id===govState.dept).dept;
+  const main=$('#govMain');
+  main.innerHTML=`
+    <div class="gov-head"><div class="p-hello" style="color:#06B6D4">Municipal Command · Ludhiana</div><h1 class="p-h1" style="font-size:23px">${title}</h1></div>
+    <div class="gov-kpis">${govKpi('Open',open,IC.inbox,'#2563EB')}${govKpi('In Progress',prog,IC.clock,'#F59E0B')}${govKpi('Resolved',res,IC.check,'#10B981')}${govKpi('High Priority',high,IC.alert,'#EF4444')}</div>
+    <div class="gov-body">
+      <div class="gov-list-wrap">
+        <div class="gov-tabs">${GOV_TABS.map(t=>`<button class="gtab ${govState.tab===t?'active':''}" data-t="${t}">${t} <span>${t==='Open'?open:t==='Resolved'?res:scope.length}</span></button>`).join('')}</div>
+        <div class="gov-list" id="govList"></div>
+      </div>
+      <div class="gov-detail" id="govDetail"></div>
+    </div>`;
+  main.querySelectorAll('.gtab').forEach(b=>b.onclick=()=>{govState.tab=b.dataset.t;renderGovMain();});
+  const gl=$('#govList');
+  if(list.length)list.forEach(c=>gl.appendChild(govRow(c)));
+  else gl.innerHTML=`<div class="empty-state" style="padding:40px"><div class="es-ico">${IC.check}</div><h3>Inbox clear</h3><p>No ${govState.tab.toLowerCase()} complaints in this queue.</p></div>`;
+  if((!govState.sel||!list.includes(govState.sel))&&list.length)govState.sel=list[0];
+  renderGovDetail();
+}
+function govRow(c){
+  const thumb=c.photo?`<img src="${c.photo}">`:c.sample?sampleThumb(c.sample):`<span class="cxt-ico">${c.cat.ico}</span>`;
+  const sel=govState.sel&&govState.sel.id===c.id;
+  const pcls={High:'st-progress',Medium:'st-assigned',Low:'st-registered'}[c.priority];
+  const row=el('div','gov-row'+(sel?' sel':''));
+  row.innerHTML=`<div class="cx-thumb" style="width:54px;height:54px">${thumb}</div>
+    <div style="flex:1;min-width:0"><div class="gr-top"><span class="cx-id">${c.id}</span><span class="st-badge ${pcls}">${c.priority}</span></div>
+      <div class="gr-title">${c.title}</div><div class="cx-meta">${IC.users} ${c.citizen} · ${c.ward}</div></div>
+    <div class="gr-r"><span class="st-badge ${STBADGE[c.status][1]}"><span class="dot"></span>${STBADGE[c.status][0]}</span><span class="gr-time">${c.created}</span></div>`;
+  row.onclick=()=>{govState.sel=c;renderGovMain();};
+  return row;
+}
+function renderGovDetail(){
+  const d=$('#govDetail'),c=govState.sel;
+  if(!c){d.innerHTML=`<div class="empty-state" style="padding:50px"><div class="es-ico">${IC.inbox}</div><h3>Select a complaint</h3><p>Pick an item to review and act on it.</p></div>`;return;}
+  if(!c._ai)c._ai=computeAI(c);const ai=c._ai;
+  const photo=c.photo?`<img src="${c.photo}">`:c.sample?sampleBig(c.sample):`<div style="display:grid;place-items:center;height:100%;color:${c.cat.c}">${c.cat.ico}</div>`;
+  const nextLabels=['Acknowledge complaint','Assign field crew','Mark In Progress','Mark Resolved'];
+  const tl=['Registered','Acknowledged','Assigned','In Progress','Resolved'];
+  d.innerHTML=`
+    <div class="gd-photo">${photo}</div>
+    <div class="gd-body">
+      <div class="gd-id">${c.id}</div><div class="gd-title">${c.title}</div>
+      <div class="cx-meta" style="margin:6px 0 13px">${IC.users} ${c.citizen} · ${IC.pin} ${c.ward} · ${c.created}</div>
+      <div class="gd-ai"><div class="gd-ai-h">${IC.sparkles} AI Triage (auto-routed to you)</div>
+        <div class="gd-ai-row"><span>Category</span><b style="color:${c.cat.c}">${c.cat.name}</b></div>
+        <div class="gd-ai-row"><span>Priority</span><b>${c.priority}</b></div>
+        <div class="gd-ai-row"><span>Suggested crew</span><b>${ai.crew}</b></div>
+        <div class="gd-ai-row"><span>SLA target</span><b>${ai.eta}</b></div>
+      </div>
+      <div class="gd-status-h">Status</div>
+      <div class="gd-steps">${tl.map((s,i)=>`<div class="gds ${i<c.status?'done':i===c.status?'now':''}"><span></span>${s}</div>`).join('')}</div>
+      ${c.status<4?`<button class="btn-primary block" id="govAdvance">${IC.check} ${nextLabels[c.status]}</button>
+        <button class="btn-line block" id="govReassign" style="margin-top:8px">Reassign department</button>`
+        :`<div class="gd-resolved">${IC.check} Resolved & verified</div>`}
+    </div>`;
+  const adv=$('#govAdvance');if(adv)adv.onclick=()=>{c.status=Math.min(4,c.status+1);toast(STBADGE[c.status][0],c.id+' · status updated',IC.check);renderGovMain();const n=$('#navCount');if(n)n.textContent=mine().length;};
+  const rb=$('#govReassign');if(rb)rb.onclick=()=>toast('Reassignment','Department override (demo only)',IC.route,'rgba(37,99,235,.14)','#2563EB');
 }
 
 function init(){
@@ -923,6 +1159,7 @@ function init(){
 
   $('#reportIco').innerHTML=IC.megaphone;$('#opsIco').innerHTML=IC.cpu;
   $('#reportEntry').onclick=()=>{show('auth');};
+  $('#govEntry').onclick=()=>{show('gov');buildGov();};
   $('#launchMission').onclick=enterMission;
   $('#runMission').onclick=runMission;
   $('#exitBtn').onclick=exitMission;
